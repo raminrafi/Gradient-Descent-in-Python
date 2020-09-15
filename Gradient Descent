@@ -1,0 +1,78 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import random
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import load_iris
+from sklearn import linear_model
+from sklearn import preprocessing
+from sklearn.utils import shuffle
+
+
+class GradientDescent:
+    def __init__(self):
+        pass
+
+    def gradient_descent(self, X, y, learn_rate=0.01, n_iters=100):
+        n_samples, n_features = X.shape
+        self.weights = np.zeros(shape=(n_features,1))
+        self.bias = 0
+        self.X = X
+        self.y = y
+        costs = []
+
+        for i in range(n_iters):
+            y_hat = np.dot(X, self.weights) + self.bias
+            cost = (1 / n_samples) * np.sum((y_hat - y)**2)
+            costs.append(cost)
+            if i % 100 == 0:
+                print("Cost at iteration {0}: {1}".format(i,cost))
+            upd_w = (2 / n_samples) * np.dot(X.T, (y_hat - y))
+            upd_b = (2 / n_samples) * np.sum((y_hat - y))
+            self.weights = self.weights - learn_rate * upd_w
+            self.bias = self.bias - learn_rate * upd_b
+
+        return self.weights, self.bias, costs
+
+    def predict(self, X):
+        yhat = np.dot(X, self.weights) + self.bias
+        return yhat
+
+    def predict2(self, X):
+        x = np.dot(X, self.weights)
+        yhat = np.linalg.norm(x)
+        arr = []
+        if (yhat <= 1.5):
+            arr.append(0)
+        elif (yhat > 1.5 and yhat < 2.5):
+            arr.append(1)
+        else:
+            arr.append(2)
+        return arr
+
+
+iris = load_iris()
+model = GradientDescent()
+X, y = shuffle(iris.data, iris.target, random_state=13)
+x_train, x_test, y_train, y_test = train_test_split(X,y,train_size=0.5, test_size=0.5, random_state=123)
+weight, b, costs = model.gradient_descent(x_train, y_train, learn_rate=0.00002, n_iters=1000)
+
+fig = plt.figure(figsize=(8,6))
+plt.plot(np.arange(1000), costs)
+plt.xlabel("Iterations")
+plt.ylabel("Cost")
+plt.show()
+
+n_train, _= x_train.shape
+n_test, _ = x_test.shape
+
+p_train = model.predict(x_train)
+p_test = model.predict2(x_test)
+
+training_error = (1 / n_train) * np.sum((p_train - y_train) ** 2)
+test_error = (1 / n_test) * np.sum((p_test - y_test) ** 2)
+
+print("Error on training set: ", training_error)
+print("Error on test set: ", test_error)
+
+
